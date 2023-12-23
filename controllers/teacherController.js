@@ -51,7 +51,7 @@ const createNewTeacher = asyncHandler(async (req, res) => {
 
   if (teacher) {
     res.status(201).json({
-      message: `New Teacher ${username} Registered. Waiting for approval`,
+      message: `New Teacher ${username} Registered`,
     });
   } else {
     res.status(400).json({ message: "Invalid data received" });
