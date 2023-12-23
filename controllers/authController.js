@@ -33,7 +33,7 @@ const adminLogin = asyncHandler(async (req, res) => {
 // @route POST /auth/login/teacher
 // @access Public
 const teacherLogin = asyncHandler(async (req, res) => {
-  const { username, password, active } = req.body;
+  const { username, password } = req.body;
 
   if (!username || !password) {
     return res.status(400).json({ message: "All Fields are required" });
@@ -42,9 +42,6 @@ const teacherLogin = asyncHandler(async (req, res) => {
 
   if (!teacher) {
     return res.status(404).json({ message: "User not found" });
-  }
-  if (!active) {
-    return res.status(418).json({ message: "User not Approved" });
   }
 
   const match = await bcrypt.compare(password, teacher.password);

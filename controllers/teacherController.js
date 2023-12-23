@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 // @desc Get Teacher
 // @route GET /teacher/:id
 // @access Private
-const getTeacher = asyncHandler(async (req, res) => {
+const getTeacherById = asyncHandler(async (req, res) => {
   if (!req?.params?.id) return res.status(400).json({ message: "ID Missing" });
 
   const teacher = await Teacher.findById(req.params.id)
@@ -15,36 +15,6 @@ const getTeacher = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "No Teacher Found." });
   }
   res.json(teacher);
-});
-
-// @desc Get New Teachers for approval
-// @route GET /teacher/approve/
-// @access Private
-const getNewTeachers = asyncHandler(async (req, res) => {
-  const teachers = await Teacher.find({
-    active: false,
-  })
-    .select("-password")
-    .lean();
-  if (!teachers?.length) {
-    return res.status(404).json({ message: "New Teachers Not Found!" });
-  }
-  res.json(teachers);
-});
-
-// @desc Get Active Teacher List
-// @route GET /teacher/list
-
-const getTeacherList = asyncHandler(async (req, res) => {
-  const teachersList = await Teacher.find({
-    active: true,
-  })
-    .select("-password -_id -__v")
-    .lean();
-  if (!teachersList?.length) {
-    return res.status(400).json({ message: "No Teacher(s) Found" });
-  }
-  res.json(teachersList);
 });
 
 // @desc Create New Teacher
@@ -88,70 +58,49 @@ const createNewTeacher = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc Approve Teacher
-// @route PATCH /teacher/approve
-// @access Private
-const approveTeacher = asyncHandler(async (req, res) => {
-  const { id, active } = req.body;
-
-  // Confirm Data
-  if ((!id, typeof active !== "boolean")) {
-    return res.status(400).json({ message: "All fields are required" });
-  }
-  // Find Teacher
-  const teacher = await Teacher.findById(id).exec();
-  if (!teacher) {
-    return res.status(400).json({ message: "User not found" });
-  }
-
-  teacher.active = true;
-
-  await teacher.save();
-
-  res.json({ message: "Teacher Approved" });
-});
-
 // @desc Update Teacher
 // @route PATCH /teacher
 // @access Private
 const updateTeacher = asyncHandler(async (req, res) => {
-  const { id, name, email, department, username, password, active } = req.body;
+  const { id, name, email, department, username, password } = req.body;
 
-  // Confirm Data
-  if (
-    !id ||
-    !name ||
-    !email ||
-    !department ||
-    !username ||
-    !password ||
-    typeof active !== "boolean"
-  ) {
-    return res.status(400).json({ message: "All fields are required" });
+  // Confirm Id
+  if (!id) {
+    return res.status(400).json({ message: "Teacher id not given" });
   }
+
   // Find Teacher
   const teacher = await Teacher.findById(id).exec();
   if (!teacher) {
-    return res.status(400).json({ message: "User not found" });
+    return res.status(404).json({ message: "Teacher not found" });
   }
 
-  // Check duplicate
-  const duplicate = await user.findOne({ username }).lean().exec();
-  //Allow update to current user
-  if (duplicate && duplicate?._id.toString() !== id) {
-    return res.status(409).json({ message: "Duplicate username" });
+  // Check for duplicate username
+  if (username) {
+    const duplicate = await Teacher.findOne({ username }).lean().exec();
+    // Allow update to the current teacher
+    if (duplicate && duplicate._id.toString() !== id) {
+      return res.status(409).json({ message: "Duplicate username" });
+    }
+    teacher.username = username;
   }
 
-  teacher.name = name;
-  teacher.email = email;
-  teacher.department = department;
-  teacher.username = username;
-  teacher.active = active;
+  // Update teacher fields if provided
+  if (name) teacher.name = name;
+  if (email) teacher.email = email;
+  if (department) teacher.department = department;
 
+  // Update password if provided
   if (password) {
-    // Hash Pwd
-    teacher.password = await bcrypt.hash(password, 10);
+    try {
+      // Hash Pwd
+      teacher.password = await bcrypt.hash(password, 10);
+    } catch (error) {
+      return res.status(500).json({ message: "Error updating password" });
+    }
   }
+
+  // Save the updated teacher
   const updatedTeacher = await teacher.save();
 
   res.json({ message: `Teacher ${updatedTeacher.username} Updated` });
@@ -179,11 +128,8 @@ const deleteTeacher = asyncHandler(async (req, res) => {
 });
 
 module.exports = {
-  getTeacher,
-  getNewTeachers,
-  getTeacherList,
+  getTeacherById,
   createNewTeacher,
-  approveTeacher,
   updateTeacher,
   deleteTeacher,
 };
