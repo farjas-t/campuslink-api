@@ -78,56 +78,56 @@ const createNewStudent = asyncHandler(async (req, res) => {
 });
 
 // @desc Update Student
-// @route PATCH /Student
+// @route PATCH /student
 // @access Private
 const updateStudent = asyncHandler(async (req, res) => {
   const { id, name, admno, rollno, semester, email, username, password } =
     req.body;
 
   // Confirm Data
-  if (
-    !id ||
-    !name ||
-    !email ||
-    !admno ||
-    !rollno ||
-    !semester ||
-    !username ||
-    !password
-  ) {
-    return res.status(400).json({ message: "All fields are required" });
+  if (!id) {
+    return res.status(400).json({ message: "Student id not given" });
   }
 
   // Find Student
   const student = await Student.findById(id).exec();
 
   if (!student) {
-    return res.status(400).json({ message: "User not found" });
+    return res.status(404).json({ message: "Student not found" });
   }
 
-  // Check for duplicate
-  const duplicate = await Student.findOne({ username }).lean().exec();
+  // Check for duplicate username
+  if (username) {
+    const duplicate = await Student.findOne({ username }).lean().exec();
 
-  // Allow Updates to original
-  if (duplicate && duplicate?._id.toString() !== id) {
-    return res.status(409).json({ message: "Duplicate Username" });
+    // Allow Updates to the current student
+    if (duplicate && duplicate._id.toString() !== id) {
+      return res.status(409).json({ message: "Duplicate Username" });
+    }
+    student.username = username;
   }
 
-  student.name = name;
-  student.email = email;
-  student.admno = admno;
-  student.rollno = rollno;
-  student.semester = semester;
-  student.username = username;
+  // Update student fields if provided
+  if (name) student.name = name;
+  if (email) student.email = email;
+  if (admno) student.admno = admno;
+  if (rollno) student.rollno = rollno;
+  if (semester) student.semester = semester;
 
+  // Update password if provided
   if (password) {
-    // Hash Pwd
-    student.password = await bcrypt.hash(password, 10);
+    try {
+      // Hash Pwd
+      student.password = await bcrypt.hash(password, 10);
+    } catch (error) {
+      return res.status(500).json({ message: "Error updating password" });
+    }
   }
 
+  // Save the updated student
   await student.save();
 
-  res.json({ message: "User Updated" });
+  res.json({ message: "Student Updated" });
 });
 
 // @desc Get Student by Username
@@ -186,6 +186,13 @@ const getStudentPapers = asyncHandler(async (req, res) => {
 
   if (!student) {
     return res.status(404).json({ message: "Student not found" });
+  }
+
+  // Ensure the 'papers' field is available in the 'semester' schema
+  if (!student.semester || !student.semester.papers) {
+    return res.status(404).json({
+      message: "No papers found for this student in the specified semester",
+    });
   }
 
   const papers = student.semester.papers;

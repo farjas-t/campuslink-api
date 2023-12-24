@@ -10,6 +10,12 @@ const semesterSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Department",
   },
+  papers: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Paper",
+    },
+  ],
 });
 
 module.exports = mongoose.model("Semester", semesterSchema);
