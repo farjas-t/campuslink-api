@@ -1,4 +1,5 @@
 const Student = require("./../models/Student");
+const Paper = require("./../models/Paper");
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 
@@ -32,7 +33,16 @@ const getAllStudents = asyncHandler(async (req, res) => {
 // @route POST /Student
 // @access Private
 const createNewStudent = asyncHandler(async (req, res) => {
-  const { name, admno, rollno, semester, email, username, password } = req.body;
+  const {
+    name,
+    admno,
+    rollno,
+    semester,
+    department,
+    email,
+    username,
+    password,
+  } = req.body;
 
   // Confirm Data
   if (
@@ -41,6 +51,7 @@ const createNewStudent = asyncHandler(async (req, res) => {
     !admno ||
     !rollno ||
     !semester ||
+    !department ||
     !username ||
     !password
   ) {
@@ -54,6 +65,18 @@ const createNewStudent = asyncHandler(async (req, res) => {
     return res.status(409).json({ message: "Duplicate Username" });
   }
 
+  // Check if the chosen semester is of the chosen department
+  const validSemester = await Semester.exists({
+    _id: semester,
+    department: department,
+  });
+
+  if (!validSemester) {
+    return res
+      .status(400)
+      .json({ message: "Invalid semester for the chosen department" });
+  }
+
   // Hash Password
   const hashedPwd = await bcrypt.hash(password, 10); // salt rounds
 
@@ -63,6 +86,7 @@ const createNewStudent = asyncHandler(async (req, res) => {
     admno,
     rollno,
     semester,
+    department,
     username,
     password: hashedPwd,
   };
@@ -81,8 +105,17 @@ const createNewStudent = asyncHandler(async (req, res) => {
 // @route PATCH /student
 // @access Private
 const updateStudent = asyncHandler(async (req, res) => {
-  const { id, name, admno, rollno, semester, email, username, password } =
-    req.body;
+  const {
+    id,
+    name,
+    admno,
+    rollno,
+    semester,
+    department,
+    email,
+    username,
+    password,
+  } = req.body;
 
   // Confirm Data
   if (!id) {
@@ -112,7 +145,21 @@ const updateStudent = asyncHandler(async (req, res) => {
   if (email) student.email = email;
   if (admno) student.admno = admno;
   if (rollno) student.rollno = rollno;
-  if (semester) student.semester = semester;
+  if (department) student.department = department;
+
+  // Check if the updated semester is of the current department
+  if (semester) {
+    const validSemester = await Semester.exists({
+      _id: semester,
+      department: student.department,
+    });
+    if (!validSemester) {
+      return res
+        .status(400)
+        .json({ message: "Invalid semester for the current department" });
+    }
+    student.semester = semester;
+  }
 
   // Update password if provided
   if (password) {
@@ -128,23 +175,6 @@ const updateStudent = asyncHandler(async (req, res) => {
   await student.save();
 
   res.json({ message: "Student Updated" });
-});
-
-// @desc Get Student by Username
-// @route GET /students/username/:username
-// @access Private
-const getStudentByUsername = asyncHandler(async (req, res) => {
-  const { username } = req.params;
-  const student = await Student.findOne({ username })
-    .populate("semester")
-    .select("-password -_id -__v")
-    .exec();
-
-  if (!student) {
-    return res.status(404).json({ message: "Student not found" });
-  }
-
-  res.json(student);
 });
 
 // @desc Delete Student
@@ -172,64 +202,26 @@ const deleteStudent = asyncHandler(async (req, res) => {
 // @route GET /students/:Id/papers
 // @access Private
 const getStudentPapers = asyncHandler(async (req, res) => {
-  const { Id } = req.params;
+  const studentId = req.params.Id;
 
-  const student = await Student.findById(Id)
-    .populate({
-      path: "semester",
-      populate: {
-        path: "papers",
-        model: "Paper",
-      },
-    })
-    .exec();
+  try {
+    // Find the student by ID
+    const student = await Student.findById(studentId);
 
-  if (!student) {
-    return res.status(404).json({ message: "Student not found" });
-  }
+    if (!student) {
+      return res.status(404).json({ error: "Student not found" });
+    }
 
-  // Ensure the 'papers' field is available in the 'semester' schema
-  if (!student.semester || !student.semester.papers) {
-    return res.status(404).json({
-      message: "No papers found for this student in the specified semester",
+    // Find papers for the student's semester and department
+    const papers = await Paper.find({
+      semester: student.semester,
     });
+
+    res.json(papers);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-
-  const papers = student.semester.papers;
-  res.json(papers);
-});
-
-// @desc Get Teacher's Information
-// @route GET /students/:Id/teachers
-// @access Private
-const getTeacherInfo = asyncHandler(async (req, res) => {
-  const { Id } = req.params;
-
-  const student = await Student.findById(Id)
-    .populate({
-      path: "semester",
-      populate: {
-        path: "papers",
-        model: "Paper",
-        populate: {
-          path: "teacher",
-          model: "Teacher",
-        },
-      },
-    })
-    .exec();
-
-  if (!student) {
-    return res.status(404).json({ message: "Student not found" });
-  }
-
-  const teachers = student.semester.papers.map((paper) => ({
-    paperCode: paper.code,
-    teacherName: paper.teacher.name,
-    teacherEmail: paper.teacher.email,
-  }));
-
-  res.json(teachers);
 });
 
 module.exports = {
@@ -237,8 +229,6 @@ module.exports = {
   getAllStudents,
   createNewStudent,
   updateStudent,
-  getStudentByUsername,
   deleteStudent,
   getStudentPapers,
-  getTeacherInfo,
 };

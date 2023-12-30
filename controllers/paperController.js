@@ -1,4 +1,5 @@
-const Paper = require("./../models/Paper");
+const Paper = require("../models/Paper");
+const Student = require("../models/Student");
 const asyncHandler = require("express-async-handler");
 
 // @desc Get Paper
@@ -153,16 +154,27 @@ const getPapersBySemester = asyncHandler(async (req, res) => {
 // @desc Get Students Enrolled in a Paper
 // @route GET /papers/:paperId/students
 // @access Private
-const getStudentsEnrolledInPaper = asyncHandler(async (req, res) => {
-  const { paperId } = req.params;
-  const paper = await Paper.findById(paperId)
-    .populate("students")
-    .select("-__v")
-    .exec();
-  if (!paper) {
-    return res.status(400).json({ message: "Paper Not Found." });
+const getStudentsInPaper = asyncHandler(async (req, res) => {
+  const paperId = req.params.paperId;
+
+  try {
+    // Find the paper by ID
+    const paper = await Paper.findById(paperId);
+
+    if (!paper) {
+      return res.status(404).json({ error: "Paper not found" });
+    }
+
+    // Find students for the paper's semester and department
+    const students = await Student.find({
+      semester: paper.semester,
+    });
+
+    res.json(students);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
-  res.json(paper.students);
 });
 
 module.exports = {
@@ -173,5 +185,5 @@ module.exports = {
   getAllPapers,
   getPapersByDepartment,
   getPapersBySemester,
-  getStudentsEnrolledInPaper,
+  getStudentsInPaper,
 };

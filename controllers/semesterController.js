@@ -16,97 +16,54 @@ const getSemesterById = asyncHandler(async (req, res) => {
   res.json(semester);
 });
 
-// @desc Create The Semester
-// @route POST /Semester
+// @desc Get Semesters by Department
+// @route GET /Semester/byDepartment/:deptId
 // @access Private
-const createSemester = asyncHandler(async (req, res) => {
-  const { semname, department } = req.body;
+const getSemestersByDepartment = asyncHandler(async (req, res) => {
+  const { deptId } = req.params;
 
-  // Confirm Data
-  if (!semname || !department) {
-    return res.status(400).json({ message: "All fields are required" });
+  if (!deptId) {
+    return res.status(400).json({ message: "Department ID missing" });
   }
 
-  // Check for Duplicates
-  const duplicate = await Semester.findOne({ semname }).lean().exec();
+  const semesters = await Semester.find({ department: deptId })
+    .select("-__v")
+    .exec();
 
-  if (duplicate) {
-    return res.status(409).json({ message: "Duplicate Semester Name" });
+  if (!semesters || semesters.length === 0) {
+    return res
+      .status(404)
+      .json({ message: "No semesters found for the specified department" });
   }
 
-  const semesterObj = {
-    semname,
-    department,
-  };
-
-  // Create and Store New semester
-  const semester = await Semester.create(semesterObj);
-
-  if (semester) {
-    res.status(201).json({ message: `New Semester ${semname} created` });
-  } else {
-    res.status(400).json({ message: "Invalid data received" });
-  }
+  res.json(semesters);
 });
 
-// @desc Update Semester
-// @route PATCH /Semester
+// @desc Get Semester by Department and Semnum
+// @route GET /Semester/byDepartmentAndSemnum/:deptId/:semnum
 // @access Private
-const updateSemester = asyncHandler(async (req, res) => {
-  const { id, semname, department } = req.body;
+const getSemesterByDepartmentAndSemnum = asyncHandler(async (req, res) => {
+  const { deptId, semnum } = req.params;
 
-  // Confirm Data
-  if (!id || !semname || !department) {
-    return res.status(400).json({ message: "All fields are required" });
+  if (!deptId || !semnum || isNaN(semnum)) {
+    return res.status(400).json({ message: "Invalid parameters" });
   }
 
-  // Find Semester
-  const semester = await Semester.findById(id).exec();
+  const semester = await Semester.findOne({ department: deptId, semnum })
+    .select("-__v")
+    .exec();
 
   if (!semester) {
-    return res.status(400).json({ message: "Semester not found" });
+    return res.status(404).json({
+      message: "Semester not found for the specified department and semnum",
+    });
   }
 
-  // Check for duplicate
-  const duplicate = await Semester.findOne({ semname }).lean().exec();
-
-  // Allow Updates to original
-  if (duplicate && duplicate?._id.toString() !== id) {
-    return res.status(409).json({ message: "Duplicate Semester Name" });
-  }
-
-  semester.semname = semname;
-  semester.department = department;
-
-  await semester.save();
-
-  res.json({ message: "Semester Updated" });
-});
-
-// @desc Delete Semester
-// @route DELETE /Semester
-// @access Private
-const deleteSemester = asyncHandler(async (req, res) => {
-  const { id } = req.body;
-
-  if (!id) {
-    return res.status(400).json({ message: "Semester ID required" });
-  }
-
-  const semester = await Semester.findById(id).exec();
-
-  if (!semester) {
-    return res.status(400).json({ message: "Semester not found" });
-  }
-
-  const result = await semester.deleteOne();
-
-  res.json({ message: `${result.semname} deleted` });
+  res.json(semester);
 });
 
 module.exports = {
   getSemesterById,
-  createSemester,
-  updateSemester,
-  deleteSemester,
+  getSemestersByDepartment,
+  getSemesterByDepartmentAndSemnum,
 };

@@ -22,12 +22,6 @@ const paperSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Teacher",
   },
-  students: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Student",
-    },
-  ],
 });
-
-module.exports = mongoose.model("Paper", paperSchema);
+const Paper = mongoose.models.Paper || mongoose.model("Paper", paperSchema);
+module.exports = Paper;

@@ -14,8 +14,6 @@ router
   .route("/department/:departmentId")
   .get(paperController.getPapersByDepartment);
 router.route("/semester/:semesterId").get(paperController.getPapersBySemester);
-router
-  .route("/:paperId/students")
-  .get(paperController.getStudentsEnrolledInPaper);
+router.route("/:paperId/students").get(paperController.getStudentsInPaper);
 
 module.exports = router;

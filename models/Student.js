@@ -18,6 +18,10 @@ const studentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Semester",
   },
+  department: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Department",
+  },
   email: {
     type: String,
     required: true,
@@ -32,4 +36,7 @@ const studentSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("Student", studentSchema);
+const Student =
+  mongoose.models.Student || mongoose.model("Student", studentSchema);
+
+module.exports = Student;
