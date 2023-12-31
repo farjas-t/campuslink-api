@@ -4,14 +4,14 @@ const Semester = require("./../models/Semester");
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 
-// @desc Get all Student
-// @route GET /Student
+// @desc Get student by id
+// @route GET /student/:id
 // @access Private
 const getStudentById = asyncHandler(async (req, res) => {
   if (!req?.params?.id) return res.status(400).json({ message: "ID Missing" });
 
   const student = await Student.findById(req.params.id)
-    .select("-password -_id -__v")
+    .select("-password -_id -__v").populate({path:'semester',populate:{path:'department'}})
     .exec();
   if (!student) {
     return res.status(400).json({ message: "Student Not Found." });
@@ -19,8 +19,8 @@ const getStudentById = asyncHandler(async (req, res) => {
   res.json(student);
 });
 
-// @desc Get all Student
-// @route GET /Student
+// @desc Get all Students
+// @route GET /student/
 // @access Private
 const getAllStudents = asyncHandler(async (req, res) => {
   const students = await Student.find().select("-password").lean();
@@ -31,7 +31,7 @@ const getAllStudents = asyncHandler(async (req, res) => {
 });
 
 // @desc Create New Student
-// @route POST /Student
+// @route POST /student
 // @access Private
 const createNewStudent = asyncHandler(async (req, res) => {
   const {

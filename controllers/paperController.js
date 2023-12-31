@@ -130,12 +130,10 @@ const deletePaper = asyncHandler(async (req, res) => {
 });
 
 // @desc Get All Papers
-// @route GET /papers
+// @route GET /paper/all
 // @access Private
 const getAllPapers = asyncHandler(async (req, res) => {
-  const papers = await Paper.find()
-    .select("-__v")
-    .exec();
+  const papers = await Paper.find("-__v").populate("semester department teacher").exec();
   res.json(papers);
 });
 
@@ -180,7 +178,7 @@ const getStudentsInPaper = asyncHandler(async (req, res) => {
     // Find students for the paper's semester and department
     const students = await Student.find({
       semester: paper.semester,
-    });
+    }).populate("semester department").exec();
 
     res.json(students);
   } catch (error) {

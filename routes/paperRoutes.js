@@ -10,7 +10,7 @@ router
   .patch(paperController.updatePaper)
   .delete(paperController.deletePaper);
 
-router.route("/all").get(paperController.getAllPapers);
+router.route("/").get(paperController.getAllPapers);
 
 router
   .route("/department/:departmentId")
