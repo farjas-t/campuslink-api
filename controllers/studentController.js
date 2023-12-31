@@ -1,5 +1,6 @@
 const Student = require("./../models/Student");
 const Paper = require("./../models/Paper");
+const Semester = require("./../models/Semester");
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 
@@ -105,8 +106,8 @@ const createNewStudent = asyncHandler(async (req, res) => {
 // @route PATCH /student
 // @access Private
 const updateStudent = asyncHandler(async (req, res) => {
+  const id = req.params.id;
   const {
-    id,
     name,
     admno,
     rollno,
@@ -116,7 +117,6 @@ const updateStudent = asyncHandler(async (req, res) => {
     username,
     password,
   } = req.body;
-
   // Confirm Data
   if (!id) {
     return res.status(400).json({ message: "Student id not given" });
@@ -181,7 +181,7 @@ const updateStudent = asyncHandler(async (req, res) => {
 // @route DELETE /Student
 // @access Private
 const deleteStudent = asyncHandler(async (req, res) => {
-  const { id } = req.body;
+  const id = req.params.id;
 
   if (!id) {
     return res.status(400).json({ message: "Student ID required" });

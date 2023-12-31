@@ -2,22 +2,22 @@ const Paper = require("../models/Paper");
 const Student = require("../models/Student");
 const asyncHandler = require("express-async-handler");
 
-// @desc Get Paper
+// @desc Get Paper By Id
 // @route GET /Paper
 // @access Private
 const getPaper = asyncHandler(async (req, res) => {
-  if (!req?.params?.id) return res.status(400).json({ message: "ID Missing" });
-
-  const paper = await Paper.findById(req.params.id)
-    .populate("semester department teacher students")
-    .select("-__v")
-    .exec();
-
-  if (!paper) {
-    return res.status(400).json({ message: "Paper Not Found." });
+  const paperId = req.params.id;
+  try {
+    // Find the paper by ID
+    const paper = await Paper.findById(paperId);
+    if (!paper) {
+      return res.status(404).json({ error: 'Paper not found' });
+    }
+    res.json(paper);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Internal Server Error' });
   }
-
-  res.json(paper);
 });
 
 // @desc Create Paper
@@ -61,34 +61,47 @@ const createPaper = asyncHandler(async (req, res) => {
 // @route PATCH /Paper
 // @access Private
 const updatePaper = asyncHandler(async (req, res) => {
-  const { id, code, paper, semester, department, teacher, students } = req.body;
-
+  const { code, paper, semester, department, teacher } = req.body;
+  const id = req.params.id;
   // Confirm Data
-  if (!id || !code || !paper || !semester || !department || !teacher) {
-    return res.status(400).json({ message: "Incomplete paper data" });
+  if (!id) {
+    return res.status(400).json({ message: "Paper ID is required" });
   }
 
   // Find Paper
   const foundPaper = await Paper.findById(id).exec();
 
   if (!foundPaper) {
-    return res.status(400).json({ message: "Paper not found" });
+    return res.status(404).json({ message: "Paper not found" });
   }
 
   // Check for duplicate
-  const duplicate = await Paper.findOne({ code }).lean().exec();
+  if (code) {
+    const duplicate = await Paper.findOne({ code, _id: { $ne: id } }).lean().exec();
 
-  // Allow Updates to original
-  if (duplicate && duplicate?._id.toString() !== id) {
-    return res.status(409).json({ message: "Duplicate Paper Code" });
+    if (duplicate) {
+      return res.status(409).json({ message: "Duplicate Paper Code" });
+    }
+
+    foundPaper.code = code;
   }
 
-  foundPaper.code = code;
-  foundPaper.paper = paper;
-  foundPaper.semester = semester;
-  foundPaper.department = department;
-  foundPaper.teacher = teacher;
-  foundPaper.students = students;
+  // Update other attributes if provided
+  if (paper) {
+    foundPaper.paper = paper;
+  }
+
+  if (semester) {
+    foundPaper.semester = semester;
+  }
+
+  if (department) {
+    foundPaper.department = department;
+  }
+
+  if (teacher) {
+    foundPaper.teacher = teacher;
+  }
 
   await foundPaper.save();
 
@@ -99,7 +112,7 @@ const updatePaper = asyncHandler(async (req, res) => {
 // @route DELETE /Paper
 // @access Private
 const deletePaper = asyncHandler(async (req, res) => {
-  const { id } = req.body;
+  const id = req.params.id;
 
   if (!id) {
     return res.status(400).json({ message: "Paper ID required" });
@@ -121,7 +134,6 @@ const deletePaper = asyncHandler(async (req, res) => {
 // @access Private
 const getAllPapers = asyncHandler(async (req, res) => {
   const papers = await Paper.find()
-    .populate("semester department teacher students")
     .select("-__v")
     .exec();
   res.json(papers);
@@ -133,7 +145,7 @@ const getAllPapers = asyncHandler(async (req, res) => {
 const getPapersByDepartment = asyncHandler(async (req, res) => {
   const { departmentId } = req.params;
   const papers = await Paper.find({ department: departmentId })
-    .populate("semester department teacher students")
+    .populate("semester department teacher")
     .select("-__v")
     .exec();
   res.json(papers);
@@ -145,7 +157,7 @@ const getPapersByDepartment = asyncHandler(async (req, res) => {
 const getPapersBySemester = asyncHandler(async (req, res) => {
   const { semesterId } = req.params;
   const papers = await Paper.find({ semester: semesterId })
-    .populate("semester department teacher students")
+    .populate("semester department teacher")
     .select("-__v")
     .exec();
   res.json(papers);

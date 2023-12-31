@@ -66,7 +66,8 @@ const createDept = asyncHandler(async (req, res) => {
 // @route PATCH /Dept
 // @access Private
 const updateDept = asyncHandler(async (req, res) => {
-  const { id, deptname } = req.body;
+  const id = req.params.id;
+  const { deptname } = req.body;
 
   // Confirm Data
   if (!id || !deptname) {
@@ -99,7 +100,7 @@ const updateDept = asyncHandler(async (req, res) => {
 // @route DELETE /Dept
 // @access Private
 const deleteDept = asyncHandler(async (req, res) => {
-  const { id } = req.body;
+  const id = req.params.id;
 
   if (!id) {
     return res.status(400).json({ message: "Department ID required" });

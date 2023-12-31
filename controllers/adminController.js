@@ -57,7 +57,8 @@ const createAdmin = asyncHandler(async (req, res) => {
 // @route PATCH /Admin
 // @access Private
 const updateAdmin = asyncHandler(async (req, res) => {
-  const { id, username, password } = req.body;
+  const id = req.params.id;
+  const { username, password } = req.body;
 
   // Confirm Data
   if (!id || !username || !password) {
@@ -95,7 +96,7 @@ const updateAdmin = asyncHandler(async (req, res) => {
 // @route DELETE /Admin
 // @access Private
 const deleteAdmin = asyncHandler(async (req, res) => {
-  const { id } = req.body;
+  const id = req.params.id;
 
   if (!id) {
     return res.status(400).json({ message: "Admin ID required" });

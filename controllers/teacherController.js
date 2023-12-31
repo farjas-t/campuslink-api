@@ -62,7 +62,8 @@ const createNewTeacher = asyncHandler(async (req, res) => {
 // @route PATCH /teacher
 // @access Private
 const updateTeacher = asyncHandler(async (req, res) => {
-  const { id, name, email, department, username, password } = req.body;
+  const id = req.params.id;
+  const { name, email, department, username, password } = req.body;
 
   // Confirm Id
   if (!id) {
@@ -110,7 +111,7 @@ const updateTeacher = asyncHandler(async (req, res) => {
 // @route DELETE /Teacher
 // @access Private
 const deleteTeacher = asyncHandler(async (req, res) => {
-  const { id } = req.body;
+  const id = req.params.id;
 
   if (!id) {
     return res.status(400).json({ message: "Teacher ID Required" });
