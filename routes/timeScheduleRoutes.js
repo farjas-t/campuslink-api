@@ -3,9 +3,12 @@ const router = express.Router();
 const timeScheduleController = require("./../controllers/timeScheduleController");
 
 router
-  .route("/:teacher_id")
+  .route("/")
+  .post(timeScheduleController.addTimeSchedule);
+
+router
+  .route("/:sem_id")
   .get(timeScheduleController.getTimeSchedule)
-  .post(timeScheduleController.addTimeSchedule)
   .patch(timeScheduleController.updateTimeSchedule)
   .delete(timeScheduleController.deleteTimeSchedule);
 
