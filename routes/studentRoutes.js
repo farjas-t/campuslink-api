@@ -11,6 +11,4 @@ router
 
 router.route("/:id").get(studentController.getStudentById);
 
-router.route("/:Id/papers").get(studentController.getStudentPapers);
-
 module.exports = router;

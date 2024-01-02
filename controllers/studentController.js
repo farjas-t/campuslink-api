@@ -198,37 +198,10 @@ const deleteStudent = asyncHandler(async (req, res) => {
   res.json({ message: `${result.username} deleted` });
 });
 
-// @desc Get Papers of Student's Semester
-// @route GET /students/:Id/papers
-// @access Private
-const getStudentPapers = asyncHandler(async (req, res) => {
-  const studentId = req.params.Id;
-
-  try {
-    // Find the student by ID
-    const student = await Student.findById(studentId);
-
-    if (!student) {
-      return res.status(404).json({ error: "Student not found" });
-    }
-
-    // Find papers for the student's semester and department
-    const papers = await Paper.find({
-      semester: student.semester,
-    });
-
-    res.json(papers);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Internal Server Error" });
-  }
-});
-
 module.exports = {
   getStudentById,
   getAllStudents,
   createNewStudent,
   updateStudent,
   deleteStudent,
-  getStudentPapers,
 };
