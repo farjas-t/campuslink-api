@@ -178,7 +178,7 @@ const getStudentsInPaper = asyncHandler(async (req, res) => {
     // Find students for the paper's semester and department
     const students = await Student.find({
       semester: paper.semester,
-    }).populate("semester department").exec();
+    }).select("id rollno name ").exec();
 
     res.json(students);
   } catch (error) {
