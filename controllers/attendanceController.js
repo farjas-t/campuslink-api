@@ -92,7 +92,10 @@ const getAttendanceStudent = asyncHandler(async (req, res) => {
 // @route POST /attendance
 // @access Private
 const addAttendance = asyncHandler(async (req, res) => {
-  const { paper, date, hour, attendance } = req.body;
+  const paper = req.params.paper;
+  const date = req.params.date;
+  const hour = req.params.hour;
+  const { attendance } = req.body;
 
   // Confirm Data
   if (!paper || !date || !hour || !attendance) {
@@ -139,7 +142,10 @@ const addAttendance = asyncHandler(async (req, res) => {
 // @route PATCH /attendance
 // @access Private
 const updateAttendance = asyncHandler(async (req, res) => {
-  const { id, paper, date, hour, attendance } = req.body;
+  const { id, attendance } = req.body;
+  const paper = req.params.paper;
+  const date = req.params.date;
+  const hour = req.params.hour;
 
   // Confirm Data
   if (!id || !paper || !date || !hour || !attendance) {
@@ -152,20 +158,6 @@ const updateAttendance = asyncHandler(async (req, res) => {
   if (!record) {
     return res.status(404).json({ message: "Attendance record doesn't exist" });
   }
-
-  //   // Check for duplicate
-  //   const duplicate = await Teacher.findOne({
-  //     paper: req.params.paper,
-  //     date: req.params.date,
-  //     hour: req.params.hour,
-  //   })
-  //     .lean()
-  //     .exec();
-
-  //   // Allow Updates to original
-  //   if (duplicate && duplicate?._id.toString() !== id) {
-  //     return res.status(409).json({ message: "Duplicate Username" });
-  //   }
 
   record.paper = paper;
   record.date = date;
