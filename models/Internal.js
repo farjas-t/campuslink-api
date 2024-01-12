@@ -13,7 +13,6 @@ const internalSchema = new mongoose.Schema({
         ref: "Student",
         required: true,
       },
-      name: String,
       test: {
         type: Number,
         required: true,

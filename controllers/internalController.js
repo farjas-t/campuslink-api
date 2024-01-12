@@ -13,6 +13,15 @@ const getInternal = asyncHandler(async (req, res) => {
   }
   const internal = await Internal.findOne({
     paper: req.params.paper,
+  }).populate({
+    path: "marks._id",
+    model: "Student", 
+    select: "_id rollno name "
+  })
+  .populate({
+    path: "paper",
+    model: "Paper",
+    select: "paper", 
   }).exec();
   if (!internal) {
     return res.status(404).json({
@@ -31,52 +40,42 @@ const getInternalStudent = asyncHandler(async (req, res) => {
       .status(400)
       .json({ message: "Incomplete Request: Params Missing" });
   }
-  const internal = await Internal.aggregate([
-    {
-      $lookup: {
-        from: "paper",
-        localField: "paper",
-        foreignField: "_id",
-        as: "paper",
-      },
-    },
-    {
-      $unwind: "$paper",
-    },
-    {
-      $project: {
-        marks: {
-          $filter: {
-            input: "$marks",
-            as: "mark",
-            cond: {
-              $eq: [
-                "$$mark._id",
-                new mongoose.Types.ObjectId(req.params.studentId),
-              ],
-            },
-          },
-        },
-        "paper.paper": 1,
-      },
-    },
-    {
-      $unwind: "$marks",
-    },
-  ]);
-  if (!internal.length) {
-    return res.status(404).json({
-      message: "No Records Found.",
+
+  try {
+    const internal = await Internal.findOne({ "marks._id": req.params.studentId })
+      .populate({
+        path: "marks._id",
+        model: "Student", 
+        select: "_id rollno name "
+      })
+      .populate({
+        path: "paper",
+        model: "Paper",
+        select: "paper", 
+      })
+      .exec();
+
+    if (!internal) {
+      return res.status(404).json({
+        message: "No Records Found.",
+      });
+    }
+
+    res.json(internal);
+  } catch (error) {
+    return res.status(500).json({
+      message: "Internal Server Error.",
     });
   }
-  res.json(internal);
 });
+
 
 // @desc Add Internal
 // @route POST /Internal
 // @access Private
 const addInternal = asyncHandler(async (req, res) => {
-  const { paper, marks } = req.body;
+  const paper = req.params.paper;
+  const { marks } = req.body;
 
   // Confirm Data
   if (!paper || !marks) {
@@ -113,36 +112,26 @@ const addInternal = asyncHandler(async (req, res) => {
 // @route PATCH /Internal
 // @access Private
 const updateInternal = asyncHandler(async (req, res) => {
-  const { id, paper, marks } = req.body;
+  const paperId = req.params.paper;
+  const { marks } = req.body;
 
   // Confirm Data
-  if (!id || !paper || !marks) {
+  if (!paperId || !marks) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
   // Find Record
-  const record = await Internal.findById(id).exec();
+  const record = await Internal.findOne({ paper: paperId }).exec();
   if (!record) {
     return res.status(404).json({ message: "Internal record doesn't exist" });
   }
 
-  // Check for duplicate
-  const duplicate = await Internal.findOne({
-    paper: req.params.paper,
-  })
-    .lean()
-    .exec();
-
-  // Allow Updates to original
-  if (duplicate && duplicate?._id.toString() !== id) {
-    return res.status(409).json({ message: "Duplicate Username" });
-  }
-  record.paper = paper;
   record.marks = marks;
+
   const save = await record.save();
   if (save) {
     res.json({
-      message: ` Internal Record Updated`,
+      message: `Internal Record Updated`,
     });
   } else {
     res.json({ message: "Save Failed" });
