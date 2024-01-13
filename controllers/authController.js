@@ -76,14 +76,9 @@ const studentLogin = asyncHandler(async (req, res) => {
     res.status(200).json({
       _id: student.id,
       name: student.name,
-      role: "student",
+      semester: student.semester,
     });
   }
 });
-
-// // @desc Auth Logout
-// // @route POST /auth/logout
-// // @access Public
-// const logout = asyncHandler(async (req, res) => {});
 
 module.exports = { adminLogin, teacherLogin, studentLogin };
