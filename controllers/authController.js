@@ -25,6 +25,7 @@ const adminLogin = asyncHandler(async (req, res) => {
     res.status(200).json({
       _id: admin.id,
       name: admin.name,
+      username: admin.username,
     });
   }
 });

@@ -2,12 +2,12 @@ const express = require("express");
 const router = express.Router();
 const adminController = require("./../controllers/adminController");
 
+router.route("/").post(adminController.createAdmin);
+
 router
-  .route("/")
-  .post(adminController.createAdmin)
+  .route("/:id")
+  .get(adminController.getAdminById)
   .patch(adminController.updateAdmin)
   .delete(adminController.deleteAdmin);
-
-router.route("/:id").get(adminController.getAdminById);
 
 module.exports = router;

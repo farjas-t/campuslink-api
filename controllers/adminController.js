@@ -21,10 +21,10 @@ const getAdminById = asyncHandler(async (req, res) => {
 // @route POST /Admin
 // @access Private
 const createAdmin = asyncHandler(async (req, res) => {
-  const { username, password } = req.body;
+  const { name, username, password } = req.body;
 
   // Confirm Data
-  if (!username || !password) {
+  if (!name || !username || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -39,6 +39,7 @@ const createAdmin = asyncHandler(async (req, res) => {
   const hashedPwd = await bcrypt.hash(password, 10); // salt rounds
 
   const adminObj = {
+    name,
     username,
     password: hashedPwd,
   };
@@ -47,7 +48,7 @@ const createAdmin = asyncHandler(async (req, res) => {
   const admin = await Admin.create(adminObj);
 
   if (admin) {
-    res.status(201).json({ message: `New Admin ${username} created` });
+    res.status(201).json({ message: `New Admin ${name} created` });
   } else {
     res.status(400).json({ message: "Invalid data received" });
   }
@@ -58,10 +59,10 @@ const createAdmin = asyncHandler(async (req, res) => {
 // @access Private
 const updateAdmin = asyncHandler(async (req, res) => {
   const id = req.params.id;
-  const { username, password } = req.body;
+  const { name, username, password } = req.body;
 
   // Confirm Data
-  if (!id || !username || !password) {
+  if (!id || !name || !username || !password) {
     return res.status(400).json({ message: "All fields are required" });
   }
 
@@ -80,6 +81,7 @@ const updateAdmin = asyncHandler(async (req, res) => {
     return res.status(409).json({ message: "Duplicate Admin Name" });
   }
 
+  admin.name = name;
   admin.username = username;
 
   if (password) {
@@ -89,7 +91,7 @@ const updateAdmin = asyncHandler(async (req, res) => {
 
   await admin.save();
 
-  res.json({ message: "Admin Updated" });
+  res.json({ message: `Admin ${name} Updated` });
 });
 
 // @desc Delete Admin
