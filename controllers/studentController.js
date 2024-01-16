@@ -11,7 +11,7 @@ const getStudentById = asyncHandler(async (req, res) => {
   if (!req?.params?.id) return res.status(400).json({ message: "ID Missing" });
 
   const student = await Student.findById(req.params.id)
-    .select("-password -_id -__v").populate({path:'semester',populate:{path:'department'}})
+    .select("-password -_id -__v").populate({path:'semester', select:'semnum'}).populate({path:'department',select:'deptname'})
     .exec();
   if (!student) {
     return res.status(400).json({ message: "Student Not Found." });
@@ -23,11 +23,19 @@ const getStudentById = asyncHandler(async (req, res) => {
 // @route GET /student/
 // @access Private
 const getAllStudents = asyncHandler(async (req, res) => {
-  const students = await Student.find().select("-password").lean();
+  const students = await Student.find().select("-__v -password").populate({path:'semester', select:'semnum'}).populate({path:'department',select:'deptname'}).lean();
   if (!students?.length) {
     return res.status(400).json({ message: "No Students Found" });
   }
   res.json(students);
+});
+
+// @desc Get count of all Students
+// @route GET /students/extra/count
+// @access Private
+const countStudents = asyncHandler(async (req, res) => {
+  const studentCount = await Student.countDocuments();
+  res.json({ count: studentCount });
 });
 
 // @desc Create New Student
@@ -204,4 +212,5 @@ module.exports = {
   createNewStudent,
   updateStudent,
   deleteStudent,
+  countStudents
 };

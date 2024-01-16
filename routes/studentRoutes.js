@@ -11,4 +11,6 @@ router
 
 router.route("/:id").get(studentController.getStudentById);
 
+router.route("/extra/count").get(studentController.countStudents);
+
 module.exports = router;
