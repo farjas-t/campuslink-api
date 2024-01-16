@@ -17,6 +17,25 @@ const getDeptById = asyncHandler(async (req, res) => {
   res.json(dept);
 });
 
+// @desc Get all Departments
+// @route GET /department
+// @access Private
+const getAllDept = asyncHandler(async (req, res) => {
+  const depts = await Dept.find().select("-__v").lean();
+  if (!depts?.length) {
+    return res.status(400).json({ message: "No Departments Found" });
+  }
+  res.json(depts);
+});
+
+// @desc Get count of all Departments
+// @route GET /department/extra/count
+// @access Private
+const countDept = asyncHandler(async (req, res) => {
+  const deptCount = await Dept.countDocuments();
+  res.json({ count: deptCount });
+});
+
 // @desc Create The Department with Semesters
 // @route POST /Dept
 // @access Private
@@ -139,4 +158,6 @@ module.exports = {
   createDept,
   updateDept,
   deleteDept,
+  getAllDept,
+  countDept
 };
