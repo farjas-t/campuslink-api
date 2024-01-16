@@ -9,12 +9,31 @@ const getTeacherById = asyncHandler(async (req, res) => {
   if (!req?.params?.id) return res.status(400).json({ message: "ID Missing" });
 
   const teacher = await Teacher.findById(req.params.id)
-    .select("-password -_id -__v")
+    .select("-password -_id -__v").populate({path:'department', select: 'deptname'})
     .lean();
   if (!teacher) {
     return res.status(404).json({ message: "No Teacher Found." });
   }
   res.json(teacher);
+});
+
+// @desc Get all Departments
+// @route GET /department
+// @access Private
+const getAllTeachers = asyncHandler(async (req, res) => {
+  const depts = await Teacher.find().select("-password -__v").populate({path:'department', select: 'deptname'}).lean();
+  if (!depts?.length) {
+    return res.status(400).json({ message: "No Teachers Found" });
+  }
+  res.json(depts);
+});
+
+// @desc Get count of all Departments
+// @route GET /department/extra/count
+// @access Private
+const countTeachers = asyncHandler(async (req, res) => {
+  const teacherCount = await Teacher.countDocuments();
+  res.json({ count: teacherCount });
 });
 
 // @desc Create New Teacher
@@ -133,4 +152,6 @@ module.exports = {
   createNewTeacher,
   updateTeacher,
   deleteTeacher,
+  getAllTeachers,
+  countTeachers,
 };
