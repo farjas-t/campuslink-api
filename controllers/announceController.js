@@ -1,11 +1,11 @@
 const moment = require('moment');
-const Notes = require('../models/Notes');
+const Announce = require('../models/Announcements');
 
 const announceController = {
   getAnnouncements: async (req, res) => {
     try {
       // Fetch all announcements
-      const announcements = await Notes.find();
+      const announcements = await Announce.find();
       res.json(announcements);
     } catch (error) {
       console.error(error);
@@ -20,7 +20,7 @@ const announceController = {
       // Format the current local time as "DD/MM/YYYY h:mm A"
       const datetime = moment().format('DD/MM/YYYY h:mm A');
 
-      const newAnnouncement = new Notes({ content, from, datetime });
+      const newAnnouncement = new Announce({ content, from, datetime });
 
       await newAnnouncement.save();
 
@@ -37,7 +37,7 @@ const announceController = {
       const { content } = req.body;
 
       // Find the announcement by announceId
-      const announcement = await Notes.findById(announceId);
+      const announcement = await Announce.findById(announceId);
 
       if (!announcement) {
         return res.status(404).json({ message: 'Announcement not found' });
@@ -59,7 +59,7 @@ const announceController = {
       const { announceId } = req.params;
 
       // Delete the announcement by announceId
-      const result = await Notes.findByIdAndDelete(announceId);
+      const result = await Announce.findByIdAndDelete(announceId);
 
       if (!result) {
         return res.status(404).json({ message: 'Announcement not found' });
