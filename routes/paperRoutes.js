@@ -11,6 +11,7 @@ router
   .delete(paperController.deletePaper);
 
 router.route("/").get(paperController.getAllPapers);
+router.route("/extra/count").get(paperController.countPapers);
 
 router
   .route("/department/:departmentId")

@@ -133,8 +133,16 @@ const deletePaper = asyncHandler(async (req, res) => {
 // @route GET /paper/all
 // @access Private
 const getAllPapers = asyncHandler(async (req, res) => {
-  const papers = await Paper.find("-__v").populate("semester department teacher").exec();
+  const papers = await Paper.find().select("-__v").populate({path:'semester', select:'semnum'}).populate({path:'department',select:'deptname'}).populate({path:'teacher',select:'name'}).exec();
   res.json(papers);
+});
+
+// @desc Get count of all papers
+// @route GET /papers/extra/count
+// @access Private
+const countPapers = asyncHandler(async (req, res) => {
+  const paperCount = await Paper.countDocuments();
+  res.json({ count: paperCount });
 });
 
 // @desc Get Papers by Department
@@ -196,4 +204,5 @@ module.exports = {
   getPapersByDepartment,
   getPapersBySemester,
   getStudentsInPaper,
+  countPapers
 };
