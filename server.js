@@ -47,6 +47,7 @@ app.use("/time_schedule", require("./routes/timeScheduleRoutes"));
 app.use("/attendance", require("./routes/attendanceRoutes"));
 app.use("/internal", require("./routes/internalRoutes"));
 app.use("/notes", require("./routes/notesRoutes"));
+app.use("/announce", require("./routes/announceRoutes"));
 
 // Handle 404 errors for all other routes
 app.all("*", (req, res) => {
