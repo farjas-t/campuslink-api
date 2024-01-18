@@ -15,6 +15,9 @@ const announceSchema = new mongoose.Schema(
       required: true,
     },
   },
+  {
+    timestamps: true,
+  }
 );
 
 module.exports = mongoose.model("Announce", announceSchema);

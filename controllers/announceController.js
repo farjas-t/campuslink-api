@@ -5,7 +5,7 @@ const announceController = {
   getAnnouncements: async (req, res) => {
     try {
       // Fetch all announcements
-      const announcements = await Announce.find();
+      const announcements = await Announce.find().sort({ createdAt: -1 });
       res.json(announcements);
     } catch (error) {
       console.error(error);
