@@ -46,7 +46,7 @@ const createNewStudent = asyncHandler(async (req, res) => {
     name,
     admno,
     rollno,
-    semester,
+    semnum, // Change: accept semnum in the request
     department,
     email,
     username,
@@ -59,7 +59,7 @@ const createNewStudent = asyncHandler(async (req, res) => {
     !email ||
     !admno ||
     !rollno ||
-    !semester ||
+    !semnum || // Change: check for semnum
     !department ||
     !username ||
     !password
@@ -74,9 +74,16 @@ const createNewStudent = asyncHandler(async (req, res) => {
     return res.status(409).json({ message: "Duplicate Username" });
   }
 
+  // Find the semester by semnum
+  const semester = await Semester.findOne({ semnum }).lean().exec();
+
+  if (!semester) {
+    return res.status(400).json({ message: "Invalid semester" });
+  }
+
   // Check if the chosen semester is of the chosen department
   const validSemester = await Semester.exists({
-    _id: semester,
+    _id: semester._id,
     department: department,
   });
 
@@ -94,7 +101,7 @@ const createNewStudent = asyncHandler(async (req, res) => {
     email,
     admno,
     rollno,
-    semester,
+    semester: semester._id, // Use the ID of the found semester
     department,
     username,
     password: hashedPwd,
@@ -109,6 +116,7 @@ const createNewStudent = asyncHandler(async (req, res) => {
     res.status(400).json({ message: "Invalid data received" });
   }
 });
+
 
 // @desc Update Student
 // @route PATCH /student
