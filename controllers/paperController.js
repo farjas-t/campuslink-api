@@ -1,5 +1,6 @@
 const Paper = require("../models/Paper");
 const Student = require("../models/Student");
+const Semester = require("../models/Semester");
 const asyncHandler = require("express-async-handler");
 
 // @desc Get Paper By Id
@@ -24,11 +25,18 @@ const getPaper = asyncHandler(async (req, res) => {
 // @route POST /Paper
 // @access Private
 const createPaper = asyncHandler(async (req, res) => {
-  const { code, paper, semester, department, teacher, students } = req.body;
+  const { code, paper, semnum, department, teacher, students } = req.body;
 
   // Confirm Data
-  if (!code || !paper || !semester || !department || !teacher) {
+  if (!code || !paper || !semnum || !department || !teacher) {
     return res.status(400).json({ message: "Incomplete paper data" });
+  }
+
+  // Find the semester by semnum
+  const semester = await Semester.findOne({ semnum }).lean().exec();
+
+  if (!semester) {
+    return res.status(400).json({ message: "Invalid semester" });
   }
 
   // Check for Duplicates
@@ -41,7 +49,7 @@ const createPaper = asyncHandler(async (req, res) => {
   const paperObj = {
     code,
     paper,
-    semester,
+    semester: semester._id, // Use the ID of the found semester
     department,
     teacher,
     students,
@@ -56,6 +64,7 @@ const createPaper = asyncHandler(async (req, res) => {
     res.status(400).json({ message: "Invalid data received" });
   }
 });
+
 
 // @desc Update Paper
 // @route PATCH /Paper
