@@ -59,18 +59,17 @@ const addTimeSchedule = asyncHandler(async (req, res) => {
 // @route PATCH /time-schedule/:sem_id
 // @access Private
 const updateTimeSchedule = asyncHandler(async (req, res) => {
-  const { sem_id } = req.params;
-  const { schedule } = req.body;
+  const { semester, schedule } = req.body;
 
   // Check if the semester exists
-  const existingSemester = await Semester.findById(sem_id).exec();
+  const existingSemester = await Semester.findById(semester).exec();
 
   if (!existingSemester) {
     return res.status(404).json({ message: "Semester not found" });
   }
 
   // Check if a time schedule already exists for the given semester
-  const existingTimeSchedule = await Time_Schedule.findOne({ semester: sem_id }).exec();
+  const existingTimeSchedule = await Time_Schedule.findOne({ semester: semester }).exec();
 
   if (!existingTimeSchedule) {
     return res.status(404).json({ message: "Time schedule not found for the specified semester" });

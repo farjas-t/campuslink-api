@@ -4,12 +4,12 @@ const timeScheduleController = require("./../controllers/timeScheduleController"
 
 router
   .route("/")
-  .post(timeScheduleController.addTimeSchedule);
+  .post(timeScheduleController.addTimeSchedule)
+  .patch(timeScheduleController.updateTimeSchedule);
 
 router
   .route("/:sem_id")
   .get(timeScheduleController.getTimeSchedule)
-  .patch(timeScheduleController.updateTimeSchedule)
   .delete(timeScheduleController.deleteTimeSchedule);
 
 module.exports = router;
