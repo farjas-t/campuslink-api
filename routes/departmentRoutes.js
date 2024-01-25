@@ -5,11 +5,13 @@ const deptController = require("./../controllers/deptController");
 router
   .route("/")
   .get(deptController.getAllDept)
-  .post(deptController.createDept)
+  .post(deptController.createDept);
+
+router
+  .route("/:id")
+  .get(deptController.getDeptById)
   .patch(deptController.updateDept)
   .delete(deptController.deleteDept);
-
-router.route("/:id").get(deptController.getDeptById);
 
 router.route("/extra/count").get(deptController.countDept);
 
