@@ -5,11 +5,13 @@ const studentController = require("./../controllers/studentController");
 router
   .route("/")
   .get(studentController.getAllStudents)
-  .post(studentController.createNewStudent)
+  .post(studentController.createNewStudent);
+
+router
+  .route("/:id")
+  .get(studentController.getStudentById)
   .patch(studentController.updateStudent)
   .delete(studentController.deleteStudent);
-
-router.route("/:id").get(studentController.getStudentById);
 
 router.route("/extra/count").get(studentController.countStudents);
 
