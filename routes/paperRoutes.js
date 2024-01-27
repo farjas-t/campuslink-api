@@ -19,6 +19,8 @@ router
 
 router.route("/semester/:semesterId").get(paperController.getPapersBySemester);
 
+router.route("/teacher/:teacherId").get(paperController.getPapersByTeacher);
+
 router.route("/:paperId/students").get(paperController.getStudentsInPaper);
 
 module.exports = router;

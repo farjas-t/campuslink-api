@@ -10,14 +10,17 @@ const getPaper = asyncHandler(async (req, res) => {
   const paperId = req.params.id;
   try {
     // Find the paper by ID
-    const paper = await Paper.findById(paperId);
+    const paper = await Paper.findById(paperId)
+      .populate({ path: "semester", select: "semnum" })
+      .populate({ path: "department", select: "deptname" })
+      .populate({ path: "teacher", select: "name" });
     if (!paper) {
-      return res.status(404).json({ error: 'Paper not found' });
+      return res.status(404).json({ error: "Paper not found" });
     }
     res.json(paper);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
 
@@ -65,7 +68,6 @@ const createPaper = asyncHandler(async (req, res) => {
   }
 });
 
-
 // @desc Update Paper
 // @route PATCH /Paper
 // @access Private
@@ -86,7 +88,9 @@ const updatePaper = asyncHandler(async (req, res) => {
 
   // Check for duplicate
   if (code) {
-    const duplicate = await Paper.findOne({ code, _id: { $ne: id } }).lean().exec();
+    const duplicate = await Paper.findOne({ code, _id: { $ne: id } })
+      .lean()
+      .exec();
 
     if (duplicate) {
       return res.status(409).json({ message: "Duplicate Paper Code" });
@@ -142,7 +146,12 @@ const deletePaper = asyncHandler(async (req, res) => {
 // @route GET /paper/all
 // @access Private
 const getAllPapers = asyncHandler(async (req, res) => {
-  const papers = await Paper.find().select("-__v").populate({path:'semester', select:'semnum'}).populate({path:'department',select:'deptname'}).populate({path:'teacher',select:'name'}).exec();
+  const papers = await Paper.find()
+    .select("-__v")
+    .populate({ path: "semester", select: "semnum" })
+    .populate({ path: "department", select: "deptname" })
+    .populate({ path: "teacher", select: "name" })
+    .exec();
   res.json(papers);
 });
 
@@ -178,6 +187,18 @@ const getPapersBySemester = asyncHandler(async (req, res) => {
   res.json(papers);
 });
 
+// @desc Get Papers by Teacher
+// @route GET /papers/teacher/:teacherId
+// @access Private
+const getPapersByTeacher = asyncHandler(async (req, res) => {
+  const { teacherId } = req.params;
+  const papers = await Paper.find({ teacher: teacherId })
+    .populate("semester department")
+    .select("-__v")
+    .exec();
+  res.json(papers);
+});
+
 // @desc Get Students Enrolled in a Paper
 // @route GET /papers/:paperId/students
 // @access Private
@@ -195,7 +216,9 @@ const getStudentsInPaper = asyncHandler(async (req, res) => {
     // Find students for the paper's semester and department
     const students = await Student.find({
       semester: paper.semester,
-    }).select("id rollno name ").exec();
+    })
+      .select("id rollno name ")
+      .exec();
 
     res.json(students);
   } catch (error) {
@@ -212,6 +235,7 @@ module.exports = {
   getAllPapers,
   getPapersByDepartment,
   getPapersBySemester,
+  getPapersByTeacher,
   getStudentsInPaper,
-  countPapers
+  countPapers,
 };
