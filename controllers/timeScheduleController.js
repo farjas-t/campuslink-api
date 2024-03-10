@@ -19,7 +19,9 @@ const getTimeSchedule = asyncHandler(async (req, res) => {
   const timeSchedule = await Time_Schedule.findOne({ semester: sem_id }).exec();
 
   if (!timeSchedule) {
-    return res.status(404).json({ message: "Time schedule not found for the specified semester" });
+    return res
+      .status(404)
+      .json({ message: "Time schedule not found for the specified semester" });
   }
 
   res.json(timeSchedule);
@@ -29,7 +31,8 @@ const getTimeSchedule = asyncHandler(async (req, res) => {
 // @route POST /time-schedule
 // @access Private
 const addTimeSchedule = asyncHandler(async (req, res) => {
-  const { semester, schedule } = req.body;
+  const { semester } = req.params;
+  const { schedule } = req.body;
 
   // Check if the semester exists
   const existingSemester = await Semester.findById(semester).exec();
@@ -42,7 +45,9 @@ const addTimeSchedule = asyncHandler(async (req, res) => {
   const existingTimeSchedule = await Time_Schedule.findOne({ semester }).exec();
 
   if (existingTimeSchedule) {
-    return res.status(400).json({ message: "Time schedule already exists for the specified semester" });
+    return res.status(400).json({
+      message: "Time schedule already exists for the specified semester",
+    });
   }
 
   // Create and store the time schedule for the given semester
@@ -54,12 +59,12 @@ const addTimeSchedule = asyncHandler(async (req, res) => {
   res.status(201).json({ message: "Time schedule added successfully" });
 });
 
-
 // @desc Patch (Update) Time Schedule for a Semester
 // @route PATCH /time-schedule/:sem_id
 // @access Private
 const updateTimeSchedule = asyncHandler(async (req, res) => {
-  const { semester, schedule } = req.body;
+  const { semester } = req.params;
+  const { schedule } = req.body;
 
   // Check if the semester exists
   const existingSemester = await Semester.findById(semester).exec();
@@ -69,14 +74,18 @@ const updateTimeSchedule = asyncHandler(async (req, res) => {
   }
 
   // Check if a time schedule already exists for the given semester
-  const existingTimeSchedule = await Time_Schedule.findOne({ semester: semester }).exec();
+  const existingTimeSchedule = await Time_Schedule.findOne({
+    semester: semester,
+  }).exec();
 
   if (!existingTimeSchedule) {
-    return res.status(404).json({ message: "Time schedule not found for the specified semester" });
+    return res
+      .status(404)
+      .json({ message: "Time schedule not found for the specified semester" });
   }
 
   // Update specific values in the schedule array
-  Object.keys(schedule).forEach(day => {
+  Object.keys(schedule).forEach((day) => {
     if (existingTimeSchedule.schedule[day]) {
       schedule[day].forEach((value, index) => {
         if (value !== "") {
@@ -92,8 +101,6 @@ const updateTimeSchedule = asyncHandler(async (req, res) => {
   res.json({ message: "Time schedule updated successfully" });
 });
 
-
-
 // @desc Delete Time Schedule for a Semester
 // @route DELETE /time-schedule/:sem_id
 // @access Private
@@ -108,10 +115,14 @@ const deleteTimeSchedule = asyncHandler(async (req, res) => {
   }
 
   // Find and delete the time schedule for the given semester
-  const timeSchedule = await Time_Schedule.findOneAndDelete({ semester: sem_id }).exec();
+  const timeSchedule = await Time_Schedule.findOneAndDelete({
+    semester: sem_id,
+  }).exec();
 
   if (!timeSchedule) {
-    return res.status(404).json({ message: "Time schedule not found for the specified semester" });
+    return res
+      .status(404)
+      .json({ message: "Time schedule not found for the specified semester" });
   }
 
   res.json({ message: "Time schedule deleted successfully" });

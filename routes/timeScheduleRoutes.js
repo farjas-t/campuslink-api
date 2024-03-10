@@ -3,10 +3,9 @@ const router = express.Router();
 const timeScheduleController = require("./../controllers/timeScheduleController");
 
 router
-  .route("/")
+  .route("/:semester")
   .post(timeScheduleController.addTimeSchedule)
   .patch(timeScheduleController.updateTimeSchedule);
-
 router
   .route("/:sem_id")
   .get(timeScheduleController.getTimeSchedule)

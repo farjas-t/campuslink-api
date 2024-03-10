@@ -9,6 +9,7 @@ const getSemesterById = asyncHandler(async (req, res) => {
 
   const semester = await Semester.findById(req.params.id)
     .select("-_id -__v")
+    .populate({ path: "department", select: "deptname" })
     .exec();
   if (!semester) {
     return res.status(400).json({ message: "Semester Not Found." });
