@@ -13,4 +13,6 @@ router
   .patch(internalController.updateInternal)
   .delete(internalController.deleteInternal);
 
+router.route("/extra/count").get(internalController.countInternal);
+
 module.exports = router;

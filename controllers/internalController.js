@@ -13,16 +13,18 @@ const getInternal = asyncHandler(async (req, res) => {
   }
   const internal = await Internal.findOne({
     paper: req.params.paper,
-  }).populate({
-    path: "marks._id",
-    model: "Student", 
-    select: "_id rollno name "
   })
-  .populate({
-    path: "paper",
-    model: "Paper",
-    select: "paper", 
-  }).exec();
+    .populate({
+      path: "marks._id",
+      model: "Student",
+      select: "_id rollno name ",
+    })
+    .populate({
+      path: "paper",
+      model: "Paper",
+      select: "paper",
+    })
+    .exec();
   if (!internal) {
     return res.status(404).json({
       message: "No Existing Record(s) found. Add New Record.",
@@ -42,16 +44,18 @@ const getInternalStudent = asyncHandler(async (req, res) => {
   }
 
   try {
-    const internal = await Internal.findOne({ "marks._id": req.params.studentId })
+    const internal = await Internal.findOne({
+      "marks._id": req.params.studentId,
+    })
       .populate({
         path: "marks._id",
-        model: "Student", 
-        select: "_id rollno name "
+        model: "Student",
+        select: "_id rollno name ",
       })
       .populate({
         path: "paper",
         model: "Paper",
-        select: "paper", 
+        select: "paper",
       })
       .exec();
 
@@ -68,7 +72,6 @@ const getInternalStudent = asyncHandler(async (req, res) => {
     });
   }
 });
-
 
 // @desc Add Internal
 // @route POST /Internal
@@ -159,10 +162,19 @@ const deleteInternal = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc Get count of number of Internals
+// @route GET /internal/extra/count
+// @access Private
+const countInternal = asyncHandler(async (req, res) => {
+  const internalCount = await Internal.countDocuments();
+  res.json({ count: internalCount });
+});
+
 module.exports = {
   getInternal,
   getInternalStudent,
   addInternal,
   updateInternal,
   deleteInternal,
+  countInternal,
 };
