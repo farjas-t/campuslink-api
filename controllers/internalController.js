@@ -33,25 +33,15 @@ const getInternal = asyncHandler(async (req, res) => {
   res.json(internal);
 });
 
-// @desc Get Internal Result
-// @route GET /internal/student/:studentId
-// @access Everyone
 const getInternalStudent = asyncHandler(async (req, res) => {
-  if (!req?.params?.studentId) {
+  if (!req.params.studentId) {
     return res
       .status(400)
       .json({ message: "Incomplete Request: Params Missing" });
   }
 
   try {
-    const internal = await Internal.findOne({
-      "marks._id": req.params.studentId,
-    })
-      .populate({
-        path: "marks._id",
-        model: "Student",
-        select: "_id rollno name ",
-      })
+    const internals = await Internal.find({})
       .populate({
         path: "paper",
         model: "Paper",
@@ -59,17 +49,32 @@ const getInternalStudent = asyncHandler(async (req, res) => {
       })
       .exec();
 
-    if (!internal) {
-      return res.status(404).json({
-        message: "No Records Found.",
-      });
+    if (!internals || internals.length === 0) {
+      return res.status(404).json({ message: "No Records Found." });
     }
 
-    res.json(internal);
-  } catch (error) {
-    return res.status(500).json({
-      message: "Internal Server Error.",
+    const papersAndInternals = [];
+
+    internals.forEach((internal) => {
+      internal.marks.forEach((mark) => {
+        if (mark._id._id.toString() === req.params.studentId) {
+          papersAndInternals.push({
+            paper: internal.paper.paper, // Assuming 'paper' field contains the name of the paper
+            internals: mark,
+          });
+        }
+      });
     });
+
+    if (papersAndInternals.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "No Records Found for the Specified Student ID." });
+    }
+
+    res.json(papersAndInternals);
+  } catch (error) {
+    return res.status(500).json({ message: "Internal Server Error." });
   }
 });
 
