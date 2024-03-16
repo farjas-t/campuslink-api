@@ -9,7 +9,7 @@ router.route("/student/:studentId").get(internalController.getInternalStudent);
 router
   .route("/:paper")
   .get(internalController.getInternal)
-  .post(internalController.addInternal)
+  .put(internalController.addInternal)
   .patch(internalController.updateInternal)
   .delete(internalController.deleteInternal);
 

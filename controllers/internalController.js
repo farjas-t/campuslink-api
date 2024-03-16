@@ -78,42 +78,54 @@ const getInternalStudent = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc Add Internal
-// @route POST /Internal
+// @desc Update Internal or Add if not exists
+// @route PUT /Internal/:paper
 // @access Private
 const addInternal = asyncHandler(async (req, res) => {
   const paper = req.params.paper;
   const { marks } = req.body;
 
   // Confirm Data
-  if (!paper || !marks) {
+  if (!marks) {
     return res
       .status(400)
       .json({ message: "Incomplete Request: Fields Missing" });
   }
-  // Check for Duplicates
-  const duplicate = await Internal.findOne({
-    paper: req.params.paper,
-  })
-    .lean()
-    .exec();
-  if (duplicate) {
-    return res.status(409).json({ message: "Internal record already exists" });
+
+  // Find existing record
+  let existingRecord = await Internal.findOne({ paper }).lean().exec();
+
+  // If record doesn't exist, create a new one
+  if (!existingRecord) {
+    const newInternalObj = {
+      paper,
+      marks,
+    };
+    const newRecord = await Internal.create(newInternalObj);
+    if (newRecord) {
+      return res.status(201).json({
+        message: `New Internal Record Added`,
+        data: newRecord,
+      });
+    } else {
+      return res.status(400).json({ message: "Failed to create new record" });
+    }
   }
 
-  const InternalObj = {
-    paper,
-    marks,
-  };
-  // Create and Store New teacher
-  const record = await Internal.create(InternalObj);
-  if (record) {
-    res.status(201).json({
-      message: `Internal Record  Added`,
-    });
-  } else {
-    res.status(400).json({ message: "Invalid data received" });
-  }
+  // Update existing record
+  existingRecord = await Internal.findOneAndUpdate(
+    { paper: paper },
+    { marks: marks },
+    { new: true }
+  )
+    .lean()
+    .exec();
+
+  // Send response
+  res.status(200).json({
+    message: `Internal Record Updated`,
+    data: existingRecord,
+  });
 });
 
 // @desc Update Internal
