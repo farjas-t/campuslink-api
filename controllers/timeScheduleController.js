@@ -1,5 +1,7 @@
 const Time_Schedule = require("./../models/TimeSchedule");
 const Semester = require("./../models/Semester");
+const Teacher = require("./../models/Teacher");
+const Paper = require("./../models/Paper");
 const asyncHandler = require("express-async-handler");
 
 // @desc Get Time Schedule for a Semester
@@ -27,8 +29,8 @@ const getTimeSchedule = asyncHandler(async (req, res) => {
   res.json(timeSchedule);
 });
 
-// @desc Add Time Schedule for a Semester
-// @route POST /time-schedule
+// @desc Update or Add Time Schedule for a Semester
+// @route PUT /time-schedule/:semester
 // @access Private
 const addTimeSchedule = asyncHandler(async (req, res) => {
   const { semester } = req.params;
@@ -42,21 +44,31 @@ const addTimeSchedule = asyncHandler(async (req, res) => {
   }
 
   // Check if a time schedule already exists for the given semester
-  const existingTimeSchedule = await Time_Schedule.findOne({ semester }).exec();
+  let existingTimeSchedule = await Time_Schedule.findOne({ semester }).exec();
 
-  if (existingTimeSchedule) {
-    return res.status(400).json({
-      message: "Time schedule already exists for the specified semester",
+  // If no time schedule exists, create a new one
+  if (!existingTimeSchedule) {
+    await Time_Schedule.create({
+      semester,
+      schedule,
     });
+
+    return res
+      .status(201)
+      .json({ message: "Time schedule added successfully" });
   }
 
-  // Create and store the time schedule for the given semester
-  await Time_Schedule.create({
-    semester,
-    schedule,
-  });
+  // Update the existing time schedule for the given semester
+  existingTimeSchedule = await Time_Schedule.findOneAndUpdate(
+    { semester: semester },
+    { schedule: schedule },
+    { new: true }
+  ).exec();
 
-  res.status(201).json({ message: "Time schedule added successfully" });
+  res.status(200).json({
+    message: "Time schedule updated successfully",
+    data: existingTimeSchedule,
+  });
 });
 
 // @desc Patch (Update) Time Schedule for a Semester
@@ -87,11 +99,19 @@ const updateTimeSchedule = asyncHandler(async (req, res) => {
   // Update specific values in the schedule array
   Object.keys(schedule).forEach((day) => {
     if (existingTimeSchedule.schedule[day]) {
-      schedule[day].forEach((value, index) => {
-        if (value !== "") {
-          existingTimeSchedule.schedule[day][index] = value;
-        }
-      });
+      if (Array.isArray(existingTimeSchedule.schedule[day])) {
+        schedule[day].forEach((value, index) => {
+          if (value !== "") {
+            existingTimeSchedule.schedule[day][index] = value;
+          }
+        });
+      } else {
+        console.log(`Warning: ${day} schedule is not a list`);
+      }
+    } else {
+      console.log(
+        `Warning: ${day} schedule does not exist in the existing time schedule`
+      );
     }
   });
 

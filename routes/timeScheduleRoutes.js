@@ -4,7 +4,7 @@ const timeScheduleController = require("./../controllers/timeScheduleController"
 
 router
   .route("/:semester")
-  .post(timeScheduleController.addTimeSchedule)
+  .put(timeScheduleController.addTimeSchedule)
   .patch(timeScheduleController.updateTimeSchedule);
 router
   .route("/:sem_id")
